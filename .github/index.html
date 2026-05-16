@@ -1,0 +1,1026 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#1a3a6b">
+<title>نظام الحضور والغياب</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --primary: #1a3a6b;
+    --primary-light: #2557a7;
+    --accent: #e8a020;
+    --accent-dark: #c4841a;
+    --success: #1a7a4a;
+    --success-light: #e6f5ee;
+    --danger: #b22020;
+    --danger-light: #fceaea;
+    --bg: #f0f3f8;
+    --card: #ffffff;
+    --text: #1a2233;
+    --text-muted: #5a6a80;
+    --border: #d0d8e8;
+    --metro-line1: #e74c3c;
+    --metro-line2: #2980b9;
+    --metro-line3: #27ae60;
+    --shadow: 0 2px 16px rgba(26,58,107,0.10);
+    --radius: 16px;
+    --radius-sm: 10px;
+  }
+
+  body {
+    font-family: 'Cairo', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    direction: rtl;
+  }
+
+  /* Header */
+  .header {
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+    color: white;
+    padding: 18px 20px 60px;
+    position: relative;
+    overflow: hidden;
+  }
+  .header::before {
+    content: '';
+    position: absolute;
+    bottom: -30px; left: 0; right: 0;
+    height: 60px;
+    background: var(--bg);
+    border-radius: 50% 50% 0 0 / 60px 60px 0 0;
+  }
+  .header-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+  }
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 18px;
+    font-weight: 800;
+  }
+  .logo-icon {
+    width: 40px; height: 40px;
+    background: rgba(255,255,255,0.18);
+    border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 22px;
+  }
+  .date-badge {
+    background: rgba(255,255,255,0.15);
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 600;
+  }
+
+  /* Nav Tabs */
+  .nav-tabs {
+    display: flex;
+    background: var(--card);
+    border-radius: var(--radius);
+    margin: -28px 16px 0;
+    padding: 6px;
+    box-shadow: var(--shadow);
+    position: relative;
+    z-index: 10;
+    gap: 4px;
+  }
+  .nav-tab {
+    flex: 1;
+    padding: 10px 4px;
+    border: none;
+    background: transparent;
+    border-radius: var(--radius-sm);
+    font-family: 'Cairo', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+  }
+  .nav-tab span.icon { font-size: 20px; }
+  .nav-tab.active {
+    background: var(--primary);
+    color: white;
+  }
+
+  /* Sections */
+  .section { display: none; padding: 16px; }
+  .section.active { display: block; }
+
+  /* Cards */
+  .card {
+    background: var(--card);
+    border-radius: var(--radius);
+    padding: 18px;
+    margin-bottom: 14px;
+    box-shadow: var(--shadow);
+  }
+  .card-title {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--primary);
+    margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  /* Form Elements */
+  label {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-muted);
+    margin-bottom: 6px;
+  }
+  input, select, textarea {
+    width: 100%;
+    padding: 12px 14px;
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius-sm);
+    font-family: 'Cairo', sans-serif;
+    font-size: 14px;
+    color: var(--text);
+    background: #f8fafc;
+    margin-bottom: 14px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  input:focus, select:focus { border-color: var(--primary-light); background: white; }
+  select { appearance: none; -webkit-appearance: none; cursor: pointer; }
+  .select-wrap { position: relative; }
+  .select-wrap::after {
+    content: '▾';
+    position: absolute;
+    left: 14px; top: 50%; transform: translateY(-65%);
+    color: var(--text-muted);
+    pointer-events: none;
+    font-size: 16px;
+  }
+
+  /* Status Buttons */
+  .status-group {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 8px;
+    margin-bottom: 14px;
+  }
+  .status-btn {
+    padding: 12px 6px;
+    border: 2px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: white;
+    font-family: 'Cairo', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+  }
+  .status-btn .icon { font-size: 22px; }
+  .status-btn.حاضر.selected { background: var(--success-light); border-color: var(--success); color: var(--success); }
+  .status-btn.غائب.selected { background: var(--danger-light); border-color: var(--danger); color: var(--danger); }
+  .status-btn.متأخر.selected { background: #fff8e6; border-color: var(--accent-dark); color: var(--accent-dark); }
+
+  /* Metro Station Selector */
+  .metro-map {
+    padding: 10px 0;
+  }
+  .metro-line-label {
+    font-size: 12px;
+    font-weight: 700;
+    color: white;
+    padding: 4px 12px;
+    border-radius: 20px;
+    display: inline-block;
+    margin-bottom: 10px;
+  }
+  .stations-scroll {
+    display: flex;
+    gap: 0;
+    overflow-x: auto;
+    padding-bottom: 8px;
+    align-items: center;
+    scrollbar-width: none;
+  }
+  .stations-scroll::-webkit-scrollbar { display: none; }
+  .station-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    cursor: pointer;
+    min-width: 80px;
+    flex-shrink: 0;
+  }
+  .station-dot-wrap {
+    display: flex;
+    align-items: center;
+    width: 100%;
+  }
+  .station-line {
+    flex: 1;
+    height: 4px;
+  }
+  .station-dot {
+    width: 18px; height: 18px;
+    border-radius: 50%;
+    border: 3px solid white;
+    flex-shrink: 0;
+    transition: all 0.2s;
+  }
+  .station-item:first-child .station-line.before { display: none; }
+  .station-item:last-child .station-line.after { display: none; }
+  .station-name {
+    font-size: 11px;
+    font-weight: 600;
+    text-align: center;
+    margin-top: 6px;
+    color: var(--text-muted);
+    transition: color 0.2s;
+    width: 78px;
+    word-break: break-word;
+    line-height: 1.3;
+  }
+  .station-item.selected .station-dot { transform: scale(1.3); box-shadow: 0 0 0 4px rgba(26,58,107,0.2); }
+  .station-item.selected .station-name { color: var(--primary); font-weight: 800; }
+
+  /* Selected Station Display */
+  .selected-station-display {
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+    color: white;
+    border-radius: var(--radius-sm);
+    padding: 12px 16px;
+    margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 14px;
+    font-weight: 700;
+  }
+  .selected-station-display.hidden { display: none; }
+
+  /* Submit Button */
+  .btn-submit {
+    width: 100%;
+    padding: 16px;
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+    color: white;
+    border: none;
+    border-radius: var(--radius-sm);
+    font-family: 'Cairo', sans-serif;
+    font-size: 16px;
+    font-weight: 800;
+    cursor: pointer;
+    transition: opacity 0.2s, transform 0.1s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+  .btn-submit:active { transform: scale(0.98); }
+  .btn-submit:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  /* Toast */
+  .toast {
+    position: fixed;
+    bottom: 80px;
+    left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: #1a7a4a;
+    color: white;
+    padding: 14px 24px;
+    border-radius: 30px;
+    font-size: 14px;
+    font-weight: 700;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.2);
+    opacity: 0;
+    transition: all 0.3s;
+    z-index: 999;
+    white-space: nowrap;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  /* Records List */
+  .record-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .record-item:last-child { border-bottom: none; }
+  .record-avatar {
+    width: 44px; height: 44px;
+    border-radius: 12px;
+    background: var(--bg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    flex-shrink: 0;
+  }
+  .record-info { flex: 1; }
+  .record-name { font-size: 14px; font-weight: 700; margin-bottom: 3px; }
+  .record-detail { font-size: 12px; color: var(--text-muted); display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+  .status-badge {
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+  .badge-حاضر { background: var(--success-light); color: var(--success); }
+  .badge-غائب { background: var(--danger-light); color: var(--danger); }
+  .badge-متأخر { background: #fff8e6; color: var(--accent-dark); }
+
+  /* Stats */
+  .stats-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 14px;
+  }
+  .stat-card {
+    background: var(--card);
+    border-radius: var(--radius);
+    padding: 16px;
+    box-shadow: var(--shadow);
+    text-align: center;
+  }
+  .stat-num {
+    font-size: 32px;
+    font-weight: 800;
+    color: var(--primary);
+    line-height: 1;
+    margin-bottom: 6px;
+  }
+  .stat-label { font-size: 13px; color: var(--text-muted); font-weight: 600; }
+  .stat-card.حاضر .stat-num { color: var(--success); }
+  .stat-card.غائب .stat-num { color: var(--danger); }
+  .stat-card.متأخر .stat-num { color: var(--accent-dark); }
+
+  /* Location Map Section */
+  .location-map-container {
+    background: var(--card);
+    border-radius: var(--radius);
+    overflow: hidden;
+    box-shadow: var(--shadow);
+    margin-bottom: 14px;
+  }
+  .location-map-header {
+    padding: 14px 18px;
+    background: var(--primary);
+    color: white;
+    font-size: 14px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .metro-full-map {
+    padding: 16px;
+    overflow-x: auto;
+  }
+  .metro-line-full {
+    margin-bottom: 20px;
+  }
+  .metro-line-title {
+    font-size: 13px;
+    font-weight: 800;
+    padding: 5px 14px;
+    border-radius: 20px;
+    color: white;
+    display: inline-block;
+    margin-bottom: 12px;
+  }
+  .stations-track {
+    display: flex;
+    align-items: center;
+    overflow-x: auto;
+    padding: 4px 0 12px;
+    scrollbar-width: none;
+    gap: 0;
+  }
+  .stations-track::-webkit-scrollbar { display: none; }
+  .track-station {
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+  }
+  .track-dot {
+    width: 22px; height: 22px;
+    border-radius: 50%;
+    border: 3px solid white;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    cursor: pointer;
+    position: relative;
+    transition: transform 0.2s;
+  }
+  .track-dot:hover { transform: scale(1.2); }
+  .track-dot .dot-label {
+    position: absolute;
+    bottom: -22px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 9px;
+    font-weight: 700;
+    color: var(--text-muted);
+    white-space: nowrap;
+    max-width: 70px;
+    text-align: center;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .track-line { width: 36px; height: 5px; flex-shrink: 0; }
+
+  /* Employee Count per Station */
+  .station-count-badge {
+    position: absolute;
+    top: -6px; right: -6px;
+    background: var(--accent);
+    color: white;
+    border-radius: 50%;
+    width: 18px; height: 18px;
+    font-size: 10px;
+    font-weight: 800;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* Filter Bar */
+  .filter-bar {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 14px;
+    flex-wrap: wrap;
+  }
+  .filter-chip {
+    padding: 7px 16px;
+    border-radius: 20px;
+    border: 1.5px solid var(--border);
+    background: white;
+    font-family: 'Cairo', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    color: var(--text-muted);
+  }
+  .filter-chip.active { background: var(--primary); border-color: var(--primary); color: white; }
+
+  /* Empty State */
+  .empty-state {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--text-muted);
+  }
+  .empty-state .big-icon { font-size: 48px; margin-bottom: 12px; }
+  .empty-state p { font-size: 14px; font-weight: 600; }
+
+  /* Location Indicator */
+  .location-indicator {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 14px;
+    background: #e8f4fd;
+    border-radius: var(--radius-sm);
+    margin-bottom: 14px;
+    font-size: 13px;
+    color: #1a5a9a;
+    font-weight: 600;
+  }
+
+  /* Delete Button */
+  .btn-delete {
+    background: none;
+    border: none;
+    color: var(--danger);
+    cursor: pointer;
+    font-size: 18px;
+    padding: 4px;
+    border-radius: 6px;
+    transition: background 0.2s;
+    flex-shrink: 0;
+  }
+  .btn-delete:hover { background: var(--danger-light); }
+
+  /* Metro line colors */
+  .line1 { background: var(--metro-line1); }
+  .line2 { background: var(--metro-line2); }
+  .line3 { background: var(--metro-line3); }
+
+  @media (max-width: 400px) {
+    .header { padding: 14px 14px 55px; }
+    .section { padding: 12px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<div class="header">
+  <div class="header-top">
+    <div class="logo">
+      <div class="logo-icon">🚇</div>
+      <div>
+        <div style="font-size:16px;font-weight:800">نظام الحضور</div>
+        <div style="font-size:11px;opacity:0.7;font-weight:400">مترو القاهرة</div>
+      </div>
+    </div>
+    <div class="date-badge" id="headerDate">جارٍ التحميل...</div>
+  </div>
+</div>
+
+<!-- Nav Tabs -->
+<div class="nav-tabs">
+  <button class="nav-tab active" onclick="showSection('register')">
+    <span class="icon">✏️</span>تسجيل
+  </button>
+  <button class="nav-tab" onclick="showSection('records')">
+    <span class="icon">📋</span>السجلات
+  </button>
+  <button class="nav-tab" onclick="showSection('stats')">
+    <span class="icon">📊</span>الإحصائيات
+  </button>
+  <button class="nav-tab" onclick="showSection('map')">
+    <span class="icon">🗺️</span>الخريطة
+  </button>
+</div>
+
+<!-- =================== REGISTER SECTION =================== -->
+<div class="section active" id="section-register">
+
+  <div class="card">
+    <div class="card-title">👤 بيانات الموظف</div>
+
+    <label>الاسم الكامل</label>
+    <input type="text" id="empName" placeholder="أدخل اسم الموظف" />
+
+    <label>الرقم الوظيفي</label>
+    <input type="text" id="empId" placeholder="مثال: EMP-001" />
+
+    <label>الإدارة / القسم</label>
+    <div class="select-wrap">
+      <select id="empDept">
+        <option value="">-- اختر القسم --</option>
+        <option>إدارة العمليات</option>
+        <option>الهندسة والصيانة</option>
+        <option>خدمة العملاء</option>
+        <option>الأمن والسلامة</option>
+        <option>المالية والمحاسبة</option>
+        <option>الموارد البشرية</option>
+        <option>تقنية المعلومات</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">📍 محطة المترو</div>
+    <p style="font-size:12px;color:var(--text-muted);margin-bottom:12px;">اختر المحطة التابع لها الموظف — خط المرج الجديدة إلى سعد زغلول</p>
+
+    <!-- Line 1 Stations -->
+    <div style="margin-bottom:16px;">
+      <span class="metro-line-label line1">الخط الأول 🔴</span>
+      <div class="stations-scroll" id="line1-scroll"></div>
+    </div>
+
+    <!-- Selected Station Display -->
+    <div class="selected-station-display hidden" id="selectedStationDisplay">
+      <span style="font-size:22px">🚉</span>
+      <div>
+        <div style="font-size:11px;opacity:0.7;margin-bottom:2px">المحطة المختارة</div>
+        <div id="selectedStationName">—</div>
+      </div>
+    </div>
+
+    <!-- Location from Device -->
+    <div class="location-indicator">
+      <span>📡</span>
+      <span id="locationStatus">اضغط لتحديد الموقع الجغرافي تلقائياً</span>
+      <button onclick="getLocation()" style="margin-right:auto;background:var(--primary);color:white;border:none;border-radius:6px;padding:5px 10px;font-family:'Cairo',sans-serif;font-size:12px;font-weight:700;cursor:pointer;">تحديد</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">✅ الحالة</div>
+    <div class="status-group">
+      <button class="status-btn حاضر" onclick="selectStatus('حاضر',this)">
+        <span class="icon">✅</span>حاضر
+      </button>
+      <button class="status-btn غائب" onclick="selectStatus('غائب',this)">
+        <span class="icon">❌</span>غائب
+      </button>
+      <button class="status-btn متأخر" onclick="selectStatus('متأخر',this)">
+        <span class="icon">⏰</span>متأخر
+      </button>
+    </div>
+
+    <label>ملاحظات (اختياري)</label>
+    <textarea id="empNote" placeholder="أضف أي ملاحظات..." rows="2" style="resize:none;"></textarea>
+
+    <button class="btn-submit" onclick="submitRecord()">
+      <span>💾</span> تسجيل الحضور
+    </button>
+  </div>
+</div>
+
+<!-- =================== RECORDS SECTION =================== -->
+<div class="section" id="section-records">
+
+  <div class="filter-bar">
+    <button class="filter-chip active" onclick="filterRecords('الكل',this)">الكل</button>
+    <button class="filter-chip" onclick="filterRecords('حاضر',this)">✅ حاضر</button>
+    <button class="filter-chip" onclick="filterRecords('غائب',this)">❌ غائب</button>
+    <button class="filter-chip" onclick="filterRecords('متأخر',this)">⏰ متأخر</button>
+  </div>
+
+  <div class="card" style="padding:0 18px;">
+    <div id="recordsList"></div>
+  </div>
+</div>
+
+<!-- =================== STATS SECTION =================== -->
+<div class="section" id="section-stats">
+
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-num" id="statTotal">0</div>
+      <div class="stat-label">إجمالي الموظفين</div>
+    </div>
+    <div class="stat-card حاضر">
+      <div class="stat-num" id="statPresent">0</div>
+      <div class="stat-label">✅ حاضر</div>
+    </div>
+    <div class="stat-card غائب">
+      <div class="stat-num" id="statAbsent">0</div>
+      <div class="stat-label">❌ غائب</div>
+    </div>
+    <div class="stat-card متأخر">
+      <div class="stat-num" id="statLate">0</div>
+      <div class="stat-label">⏰ متأخر</div>
+    </div>
+  </div>
+
+  <!-- Progress Bar -->
+  <div class="card">
+    <div class="card-title">📊 نسبة الحضور</div>
+    <div style="background:var(--bg);border-radius:10px;overflow:hidden;height:20px;margin-bottom:8px;">
+      <div id="attendanceBar" style="height:100%;background:var(--success);border-radius:10px;width:0%;transition:width 0.5s;display:flex;align-items:center;justify-content:flex-end;padding-left:8px;font-size:11px;color:white;font-weight:700;"></div>
+    </div>
+    <div id="attendancePct" style="font-size:13px;color:var(--text-muted);text-align:center;font-weight:600;">لا يوجد بيانات بعد</div>
+  </div>
+
+  <!-- Top Stations -->
+  <div class="card">
+    <div class="card-title">🚉 توزيع الموظفين على المحطات</div>
+    <div id="stationStats"></div>
+  </div>
+</div>
+
+<!-- =================== MAP SECTION =================== -->
+<div class="section" id="section-map">
+  <div class="location-map-container">
+    <div class="location-map-header">
+      🗺️ خريطة محطات الخط الأول — المرج الجديدة ← سعد زغلول
+    </div>
+    <div class="metro-full-map">
+      <div class="metro-line-full">
+        <span class="metro-line-title line1">الخط الأول 🔴</span>
+        <div class="stations-track" id="mapTrack"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Employees per station -->
+  <div class="card">
+    <div class="card-title">👥 الموظفون حسب المحطة</div>
+    <div id="stationEmployeeList"></div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ============================
+// DATA
+// ============================
+const LINE1_STATIONS = [
+  'المرج الجديدة','المرج','عزبة النخل','عين شمس','العباسية',
+  'الدمرداش','حدائق القبة','كوبري القبة','حمامات القبة',
+  'سراي القبة','الوايلي','بابالوق','نهر النيل','محطة مصر',
+  'السادات','السيدة زينب','المنيل','الملك الصالح',
+  'المعادي','حدائق المعادي','دار السلام','الزهراء',
+  'مار جرجس','الماظة','هيليوبوليس','عين شمس الجديدة',
+  'النزهة','روكسي','مصر الجديدة','العروبة','النصر',
+  'سعد زغلول'
+];
+
+const STATUS_ICONS = { حاضر: '✅', غائب: '❌', متأخر: '⏰' };
+const DEPT_ICONS = { 'إدارة العمليات':'⚙️','الهندسة والصيانة':'🔧','خدمة العملاء':'🎧','الأمن والسلامة':'🛡️','المالية والمحاسبة':'💰','الموارد البشرية':'👥','تقنية المعلومات':'💻' };
+
+let records = JSON.parse(localStorage.getItem('metro_attendance') || '[]');
+let selectedStation = '';
+let selectedStatus = '';
+let currentFilter = 'الكل';
+let userLat = null, userLng = null;
+
+// ============================
+// INIT
+// ============================
+function init() {
+  updateDate();
+  buildStationSelector('#line1-scroll', LINE1_STATIONS, 'line1');
+  buildMapTrack();
+  renderRecords();
+  updateStats();
+}
+
+function updateDate() {
+  const now = new Date();
+  const opts = { weekday:'long', year:'numeric', month:'long', day:'numeric', calendar:'gregory' };
+  document.getElementById('headerDate').textContent = now.toLocaleDateString('ar-EG', opts);
+}
+
+// ============================
+// STATION SELECTOR (register)
+// ============================
+function buildStationSelector(containerId, stations, lineClass) {
+  const container = document.querySelector(containerId);
+  container.innerHTML = '';
+  stations.forEach((name, i) => {
+    const item = document.createElement('div');
+    item.className = 'station-item';
+    item.innerHTML = `
+      <div class="station-dot-wrap">
+        <div class="station-line before ${lineClass}" style="height:4px;flex:1;${i===0?'opacity:0':''}"></div>
+        <div class="station-dot ${lineClass}"></div>
+        <div class="station-line after ${lineClass}" style="height:4px;flex:1;${i===stations.length-1?'opacity:0':''}"></div>
+      </div>
+      <div class="station-name">${name}</div>`;
+    item.onclick = () => selectStation(name, containerId, item);
+    container.appendChild(item);
+  });
+}
+
+function selectStation(name, containerId, el) {
+  document.querySelectorAll(`${containerId} .station-item`).forEach(i => i.classList.remove('selected'));
+  el.classList.add('selected');
+  selectedStation = name;
+  const disp = document.getElementById('selectedStationDisplay');
+  document.getElementById('selectedStationName').textContent = name;
+  disp.classList.remove('hidden');
+}
+
+// ============================
+// MAP TRACK
+// ============================
+function buildMapTrack() {
+  const track = document.getElementById('mapTrack');
+  track.innerHTML = '';
+  LINE1_STATIONS.forEach((name, i) => {
+    const item = document.createElement('div');
+    item.className = 'track-station';
+    item.innerHTML = `
+      ${i > 0 ? '<div class="track-line line1"></div>' : ''}
+      <div class="track-dot line1" title="${name}" style="position:relative;">
+        <div class="dot-label">${name}</div>
+      </div>`;
+    track.appendChild(item);
+  });
+}
+
+// ============================
+// STATUS
+// ============================
+function selectStatus(status, btn) {
+  document.querySelectorAll('.status-btn').forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+  selectedStatus = status;
+}
+
+// ============================
+// LOCATION
+// ============================
+function getLocation() {
+  const el = document.getElementById('locationStatus');
+  el.textContent = 'جارٍ تحديد الموقع...';
+  if (!navigator.geolocation) { el.textContent = 'الجهاز لا يدعم تحديد الموقع'; return; }
+  navigator.geolocation.getCurrentPosition(
+    pos => {
+      userLat = pos.coords.latitude.toFixed(5);
+      userLng = pos.coords.longitude.toFixed(5);
+      el.textContent = `📍 تم التحديد: ${userLat}, ${userLng}`;
+    },
+    () => { el.textContent = 'تعذّر تحديد الموقع، تحقق من الإذن'; }
+  );
+}
+
+// ============================
+// SUBMIT
+// ============================
+function submitRecord() {
+  const name = document.getElementById('empName').value.trim();
+  const id = document.getElementById('empId').value.trim();
+  const dept = document.getElementById('empDept').value;
+  const note = document.getElementById('empNote').value.trim();
+
+  if (!name) { showToast('⚠️ يرجى إدخال اسم الموظف', 'error'); return; }
+  if (!selectedStation) { showToast('⚠️ يرجى اختيار المحطة', 'error'); return; }
+  if (!selectedStatus) { showToast('⚠️ يرجى اختيار الحالة', 'error'); return; }
+
+  const now = new Date();
+  const record = {
+    id: Date.now(),
+    name, empId: id || '-',
+    dept: dept || 'غير محدد',
+    station: selectedStation,
+    status: selectedStatus,
+    note,
+    lat: userLat, lng: userLng,
+    time: now.toLocaleTimeString('ar-EG', {hour:'2-digit', minute:'2-digit'}),
+    date: now.toLocaleDateString('ar-EG', {day:'numeric',month:'long',year:'numeric'})
+  };
+
+  records.unshift(record);
+  localStorage.setItem('metro_attendance', JSON.stringify(records));
+
+  // Reset
+  document.getElementById('empName').value = '';
+  document.getElementById('empId').value = '';
+  document.getElementById('empDept').value = '';
+  document.getElementById('empNote').value = '';
+  selectedStation = ''; selectedStatus = '';
+  document.querySelectorAll('.station-item').forEach(i => i.classList.remove('selected'));
+  document.querySelectorAll('.status-btn').forEach(b => b.classList.remove('selected'));
+  document.getElementById('selectedStationDisplay').classList.add('hidden');
+  userLat = null; userLng = null;
+  document.getElementById('locationStatus').textContent = 'اضغط لتحديد الموقع الجغرافي تلقائياً';
+
+  showToast('✅ تم تسجيل الحضور بنجاح!');
+  renderRecords();
+  updateStats();
+}
+
+// ============================
+// RENDER RECORDS
+// ============================
+function renderRecords() {
+  const list = document.getElementById('recordsList');
+  const filtered = currentFilter === 'الكل' ? records : records.filter(r => r.status === currentFilter);
+
+  if (filtered.length === 0) {
+    list.innerHTML = `<div class="empty-state"><div class="big-icon">📭</div><p>لا توجد سجلات ${currentFilter !== 'الكل' ? 'لحالة ' + currentFilter : ''}</p></div>`;
+    return;
+  }
+
+  list.innerHTML = filtered.map(r => `
+    <div class="record-item">
+      <div class="record-avatar">${STATUS_ICONS[r.status]}</div>
+      <div class="record-info">
+        <div class="record-name">${r.name}</div>
+        <div class="record-detail">
+          <span>🚉 ${r.station}</span>
+          <span>•</span>
+          <span>🕐 ${r.time}</span>
+        </div>
+        <div class="record-detail" style="margin-top:3px;">
+          <span>${DEPT_ICONS[r.dept]||'🏢'} ${r.dept}</span>
+          ${r.lat ? `<span>•</span><span>📍 ${r.lat},${r.lng}</span>` : ''}
+        </div>
+        ${r.note ? `<div style="font-size:12px;color:var(--text-muted);margin-top:3px;font-style:italic;">💬 ${r.note}</div>` : ''}
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;">
+        <span class="status-badge badge-${r.status}">${r.status}</span>
+        <button class="btn-delete" onclick="deleteRecord(${r.id})">🗑️</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function filterRecords(filter, btn) {
+  currentFilter = filter;
+  document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+  btn.classList.add('active');
+  renderRecords();
+}
+
+function deleteRecord(id) {
+  records = records.filter(r => r.id !== id);
+  localStorage.setItem('metro_attendance', JSON.stringify(records));
+  renderRecords();
+  updateStats();
+  showToast('🗑️ تم حذف السجل');
+}
+
+// ============================
+// STATS
+// ============================
+function updateStats() {
+  const total = records.length;
+  const present = records.filter(r => r.status === 'حاضر').length;
+  const absent = records.filter(r => r.status === 'غائب').length;
+  const late = records.filter(r => r.status === 'متأخر').length;
+
+  document.getElementById('statTotal').textContent = total;
+  document.getElementById('statPresent').textContent = present;
+  document.getElementById('statAbsent').textContent = absent;
+  document.getElementById('statLate').textContent = late;
+
+  const pct = total > 0 ? Math.round((present / total) * 100) : 0;
+  const bar = document.getElementById('attendanceBar');
+  bar.style.width = pct + '%';
+  bar.textContent = pct > 10 ? pct + '%' : '';
+  document.getElementById('attendancePct').textContent = total > 0 ? `نسبة الحضور: ${pct}% (${present} من ${total})` : 'لا يوجد بيانات بعد';
+
+  // Station stats
+  const stMap = {};
+  records.forEach(r => { stMap[r.station] = (stMap[r.station] || 0) + 1; });
+  const sorted = Object.entries(stMap).sort((a,b) => b[1]-a[1]);
+  const stEl = document.getElementById('stationStats');
+  if (sorted.length === 0) {
+    stEl.innerHTML = '<div style="color:var(--text-muted);font-size:13px;text-align:center;padding:20px;">لا يوجد بيانات</div>';
+  } else {
+    stEl.innerHTML = sorted.map(([st, cnt]) => `
+      <div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);">
+        <span style="font-size:16px">🚉</span>
+        <div style="flex:1;">
+          <div style="font-size:13px;font-weight:700;">${st}</div>
+          <div style="background:var(--bg);border-radius:6px;height:6px;margin-top:5px;overflow:hidden;">
+            <div style="height:100%;background:var(--primary-light);width:${Math.min((cnt/Math.max(...sorted.map(s=>s[1])))*100,100)}%;border-radius:6px;"></div>
+          </div>
+        </div>
+        <span style="background:var(--primary);color:white;border-radius:12px;padding:3px 10px;font-size:13px;font-weight:700;">${cnt}</span>
+      </div>`).join('');
+  }
+
+  // Map - employee per station
+  const stEmpEl = document.getElementById('stationEmployeeList');
+  const stEmployees = {};
+  records.forEach(r => {
+    if (!stEmployees[r.station]) stEmployees[r.station] = [];
+    stEmployees[r.station].push(r);
+  });
+  if (Object.keys(stEmployees).length === 0) {
+    stEmpEl.innerHTML = '<div style="color:var(--text-muted);font-size:13px;text-align:center;padding:20px;">لا يوجد موظفون مسجلون بعد</div>';
+  } else {
+    stEmpEl.innerHTML = Object.entries(stEmployees).map(([st, emps]) => `
+      <div style="margin-bottom:14px;">
+        <div style="font-size:14px;font-weight:700;color:var(--primary);margin-bottom:8px;">🚉 ${st} <span style="font-size:12px;color:var(--text-muted);">(${emps.length})</span></div>
+        ${emps.map(e => `
+          <div style="display:flex;align-items:center;gap:8px;padding:6px 10px;background:var(--bg);border-radius:8px;margin-bottom:5px;">
+            <span>${STATUS_ICONS[e.status]}</span>
+            <div style="flex:1;font-size:13px;font-weight:600;">${e.name}</div>
+            <span class="status-badge badge-${e.status}" style="font-size:11px;">${e.status}</span>
+          </div>`).join('')}
+      </div>`).join('');
+  }
+}
+
+// ============================
+// UI
+// ============================
+function showSection(id) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('section-' + id).classList.add('active');
+  event.currentTarget.classList.add('active');
+  if (id === 'records') renderRecords();
+  if (id === 'stats') updateStats();
+}
+
+function showToast(msg, type) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.style.background = type === 'error' ? '#b22020' : '#1a7a4a';
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2800);
+}
+
+init();
+</script>
+</body>
+</html>
